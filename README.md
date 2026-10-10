@@ -13,6 +13,36 @@ Edmonds' blossom algorithm.
 > **What this is not:** a fast implementation. The paper's asymptotic running-time
 > claims are *not* reproduced (see [Limitations](#limitations)).
 
+## Install & Quickstart
+
+Requires Python 3.10+ and `networkx`.
+
+```bash
+pip install -e .          # from a clone of this repo
+```
+
+Then use the CLI:
+
+```bash
+maxmatch --random 10 0.3   # random graph, fast mode, human-readable output
+maxmatch examples/path_graph.txt
+maxmatch --help
+```
+
+Or the Python API:
+
+```python
+from assembly import max_cardinality_matching
+
+k, matching = max_cardinality_matching(6, [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5)],
+                                       mode="edmonds")
+# k == 3, matching is a validated witness (no false positives, ever)
+```
+
+`mode="edmonds"` is the fast default (the paper's built-in fallback branch);
+`"pm"` and `"dovetail"` are the paper's research machinery — exact but very
+slow, only for tiny graphs. See `examples/` and `maxmatch --help`.
+
 ## Why
 
 Theory papers rarely ship runnable artifacts. We wanted to know: *does it actually

@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "reverse-matching"
+version = "0.1.0"
+description = "Correctness-only reference implementation of almost-linear-time max-cardinality matching (OpenAI 2026 paper reproduction)"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = ["networkx"]
+keywords = ["matching", "graph-theory", "blossom", "algorithms"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+
+[project.scripts]
+maxmatch = "cli:main"
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.hatch.build.targets.wheel]
+include = ["reductions.py", "phase_machine.py", "assembly.py", "cli.py"]
+
+[tool.pytest.ini_options]
+python_files = ["tests_*.py", "test_*.py"]
