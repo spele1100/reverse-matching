@@ -75,6 +75,73 @@ k, matching = max_cardinality_matching(n, edges)   # decision + witness
 `networkx.max_weight_matching(maxcardinality=True)` — on G and on the constructed
 graphs H_k, plus witness validity (edges exist, no vertex reused).
 
+## Dynamic matching (Tier 2)
+
+`dynamic.py` adds a **DynamicMatching** class that maintains an *exact maximum
+matching of a general graph under edge insertions and deletions* — the operation
+no practical open-source library currently supports without full recomputation
+(NetworkX, LEMON, Boost all re-solve per call; DynMatch keeps only a 2-approximation).
+
+```python
+from dynamic import DynamicMatching
+
+dm = DynamicMatching(n=6)
+dm.insert(0, 1)          # both free -> matched instantly, no search
+dm.insert(1, 2)          # 1 free endpoint search if needed
+dm.insert(2, 4)          # arbitrary: one blossom search over free roots
+dm.delete(0, 1)          # unmatched delete: zero work; matched delete: repair search
+dm.size()                # |M| now
+dm.matching()            # sorted list of (u, v) pairs — always a VALID matching
+dm.is_valid()            # invariant self-check (mate symmetric, edges exist)
+dm.oracle_check()        # test-only: differential check vs networkx
+```
+
+**Guarantees** (proofs in the module docstring, spec in `papers/`):
+
+- The matching is **maximum after every update** (eager, exact — not approximate).
+- Deleting an unmatched edge costs O(1) (Lemma A: the matching stays maximum).
+- Every other update performs **at most one blossom search**, O(m) worst case,
+  versus O(n·m) for a full Edmonds recompute — an O(n) factor.
+- **Stability**: repairs flip one short augmenting path; full recomputation can
+  churn the entire matching (see churn numbers below).
+- Insert of a present edge / delete of an absent edge are no-ops; self-loops raise
+  `ValueError`; parallel edges are deduplicated.
+
+The repair correctness is the classical pair: ν changes by ≤ 1 per single edge
+update (Lemma A), and by Berge's theorem one augmenting-path search restores
+maximality (Lemma B) — a matched-edge deletion may legitimately shrink ν when no
+re-augmentation exists; the search decides. The search kernel is a faithful port
+of the battle-tested e-maxx blossom implementation, extended to a multi-root
+alternating forest (an edge joining even vertices of *different* trees closes an
+augmenting path; even–odd cross edges are provably inert).
+
+**Correctness certification:** `tests_dynamic.py` is a differential harness —
+after *every* operation of hundreds of randomized update sequences (n up to 200,
+densities 0.05–0.5, plus glued-triangle / K₂ₜ₊₁-minus-matching / Petersen blossom
+gauntlets and adversarial churn), the matching size must equal NetworkX's oracle
+and the matching must be valid. 39 tests, ~every-op oracle checks.
+
+**Benchmark** (`benchmarks/bench_dynamic.py`, n=2000 random graph, m≈8000,
+500 mixed updates, pure Python vs pure Python):
+
+<!-- BENCH_TABLE -->
+
+| approach | mean µs/update | matching churn (edges changed/update) |
+|---|---|---|
+| **DynamicMatching (ours)** | **750** | **0.46** mean, 12 max |
+| networkx full recompute | 3,738,791 (≈1.87 M per solve) | 236 mean, 884 max |
+
+- Speedup ≈ **5,000× per update** (≈2,500× against a single recompute — the
+  baseline harness solves before *and* after each update to measure churn).
+- Search cost: 0.58 blossom searches per update on average (290 searches over
+  500 updates), 27 of which augmented.
+- Initial build: 8,000 inserts ≈ 16 ms/insert (each insert runs at most one
+  O(m) search; a cold build is intentionally not optimized — use it for
+  workloads that change over time, not as a static solver).
+- Churn is the headline: recompute rewrites ~236 of ~1,000 matched edges per
+  update on average (up to 884); repair touches <1.
+
+
 ## Honest engineering notes
 
 - **Pricing is the hard part.** The paper's pricing primitive (Lemma 5.1) sits atop
