@@ -9,7 +9,7 @@ algorithm for maximum matching in general graphs, breaking a 60-year plateau set
 Edmonds' blossom algorithm.
 
 > **What this is:** proof that the paper's constructions actually run — decision +
-> witness verified against an oracle across 250+ tests.
+> witness verified against an oracle across 290+ tests.
 > **What this is not:** a fast implementation. The paper's asymptotic running-time
 > claims are *not* reproduced (see [Limitations](#limitations)).
 
@@ -71,7 +71,7 @@ from assembly import max_cardinality_matching
 k, matching = max_cardinality_matching(n, edges)   # decision + witness
 ```
 
-**Full suite: 251/251 green** (~27 min), with every decision cross-checked against
+**Full suite: 295 passed, 1 skipped** (~27 min), with every decision cross-checked against
 `networkx.max_weight_matching(maxcardinality=True)` — on G and on the constructed
 graphs H_k, plus witness validity (edges exist, no vertex reused).
 
@@ -121,25 +121,29 @@ densities 0.05–0.5, plus glued-triangle / K₂ₜ₊₁-minus-matching / Peter
 gauntlets and adversarial churn), the matching size must equal NetworkX's oracle
 and the matching must be valid. 39 tests, ~every-op oracle checks.
 
-**Benchmark** (`benchmarks/bench_dynamic.py`, n=2000 random graph, m≈8000,
-500 mixed updates, pure Python vs pure Python):
+**Benchmarks** (`python -m benchmarks.bench_dynamic`, pure Python vs pure
+Python, seed 12345; the baseline harness re-solves before *and* after each
+update to measure churn on both sides — so per-update speedup against a
+single recompute is ≈ 2× the figure shown):
 
-<!-- BENCH_TABLE -->
+| n | m | approach | mean µs/update | churn mean | churn max |
+|---|---|---|---|---|---|
+| 2000 | 8000 | **DynamicMatching (ours)** | **973** | **0.46** | 12 |
+| 2000 | 8000 | networkx full recompute | 3,707,425 | 236.02 | 884 |
+| 500 | 2000 | **DynamicMatching (ours)** | **1037** | **0.47** | 14 |
+| 500 | 2000 | networkx full recompute | 269,097 | 60.12 | 292 |
 
-| approach | mean µs/update | matching churn (edges changed/update) |
-|---|---|---|
-| **DynamicMatching (ours)** | **750** | **0.46** mean, 12 max |
-| networkx full recompute | 3,738,791 (≈1.87 M per solve) | 236 mean, 884 max |
-
-- Speedup ≈ **5,000× per update** (≈2,500× against a single recompute — the
-  baseline harness solves before *and* after each update to measure churn).
-- Search cost: 0.58 blossom searches per update on average (290 searches over
-  500 updates), 27 of which augmented.
+- Speedup ≈ **3,810× per update** at n=2000 (≈1,900× against a single
+  recompute), ≈ 260× at n=500. See `benchmarks/README.md`.
+- Search cost: 0.58 blossom searches per update on average (290 searches
+  over 500 updates at n=2000), 27 of which augmented.
 - Initial build: 8,000 inserts ≈ 16 ms/insert (each insert runs at most one
   O(m) search; a cold build is intentionally not optimized — use it for
   workloads that change over time, not as a static solver).
 - Churn is the headline: recompute rewrites ~236 of ~1,000 matched edges per
-  update on average (up to 884); repair touches <1.
+  update on average (up to 884); repair touches <1. If downstream consumers
+  depend on assignment stability, that churn is a cost no amount of speed
+  fixes.
 
 
 ## Honest engineering notes
