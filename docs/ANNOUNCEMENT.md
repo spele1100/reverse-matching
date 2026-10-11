@@ -1,4 +1,4 @@
-# Promo draft (DO NOT POST — internal draft only)
+# Announcement — reverse-matching
 
 **Title:** OpenAI published 719 math manuscripts with no code. I reverse-engineered one into a working library.
 
@@ -53,8 +53,3 @@ Repo: https://github.com/spele1100/reverse-matching
 reductions, assembly — lives in the same repo; the dynamic matcher above is
 the practical offshoot.)
 
-**Angle notes (internal):**
-- HN loves both angles: "OpenAI published math with no code, so I built it" is
-  the hook; "exact dynamic matching didn't exist in open source" is the payoff.
-- Lead with the OpenAI story, land on the benchmark — curiosity pulls readers
-  in, the 3,800× number keeps them.
