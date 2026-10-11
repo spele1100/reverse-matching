@@ -25,7 +25,7 @@ maxmatch = "cli:main"
 test = ["pytest"]
 
 [tool.hatch.build.targets.wheel]
-include = ["reductions.py", "phase_machine.py", "assembly.py", "cli.py", "dynamic.py"]
+
 
 [tool.pytest.ini_options]
 python_files = ["tests_*.py", "test_*.py"]

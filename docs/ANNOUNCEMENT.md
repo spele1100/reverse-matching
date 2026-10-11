@@ -36,7 +36,7 @@ blossom search extended to a multi-root alternating forest, certified by a
 differential harness that re-checks against NetworkX's oracle after *every*
 operation of hundreds of randomized update sequences, plus blossom-gauntlet
 graphs (glued triangles, odd cliques, Petersen) and adversarial churn.
-295 tests.
+39 tests (dynamic) + 256 tests (reference layers).
 
 Numbers (n=2000, m≈8000, 500 mixed updates, pure Python vs pure Python):
 ~1 ms/update vs ~3.7 s/update for the recompute baseline — roughly 3,800×
@@ -49,7 +49,9 @@ the cold build is not optimized — this is for workloads where the graph
 *changes*, not a static solver replacement.
 
 Repo: https://github.com/spele1100/reverse-matching
-(The original 3-layer reverse-engineering of the OpenAI paper — phase machine,
-reductions, assembly — lives in the same repo; the dynamic matcher above is
-the practical offshoot.)
+
+The 3-layer reverse-engineering of the OpenAI paper — phase machine,
+reductions, assembly — lives here. The dynamic matcher (the practical
+offshoot described above) now ships separately:
+https://github.com/spele1100/dynamic-matching
 
