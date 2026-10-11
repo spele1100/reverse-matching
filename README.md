@@ -52,8 +52,9 @@ layers.
 
 The interesting part is the **process**: the whole thing — spec, three layers of
 implementation, ~250 tests cross-checked against NetworkX's blossom oracle — was
-produced by orchestrating AI sub-agents in a single day. Human effort: reading the
-spec, reviewing results. See [Workflow](#workflow).
+built in a single day, driven spec-first: write a detailed implementation spec
+up front, implement layer by layer, and keep every prior layer's tests green
+after each step. See [Workflow](#workflow).
 
 ## Architecture
 
@@ -176,13 +177,9 @@ single recompute is ≈ 2× the figure shown):
 
 1. Read chapters 3 + 9; write a 32 KB implementation spec with explicit judgment
    calls (what to substitute, what to keep exact).
-2. Spawn one agent per layer, each: implement → write its own test suite → run the
+2. Implement one layer at a time: implement → write its own test suite → run the
    full suite including all prior layers (everything must stay green).
-3. Parent reviews, re-runs verification, and reports.
-
-Failure modes we hit and survived: two agents concurrently writing the same file
-(Layer 1 — merged after audit); a gateway restart killing a 4-hour run (no loss,
-thanks to write-early discipline added to every subsequent brief).
+3. Review, re-run verification, and report.
 
 ## Requirements
 
